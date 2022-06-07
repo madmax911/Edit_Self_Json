@@ -1,0 +1,99 @@
+<!doctype html>                <!--   Creator:  Max Calcagno                       -->
+<html lang="en">               <!--   License:  BSD-3                              -->
+  <head>                       <!--   Edit_Self_Json:  A self-modifying program.   -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Type: text/html" content="charset: utf-8" />
+
+    <title> Edit_Self_Json </title>
+    <style>
+      * { font-family: "Verdana"; font-size: 16px; }
+    </style>
+  </head>
+  <body>
+    Download <a id="CodeLink" href="#" download="Edit_Self_Json.js">Edit_Self_Json.js</a>
+    and run with <a href="https://www.nodejs.org"> node
+    <svg id="my_nodejs_logo" width="20px" height="20px" viewBox="0 0 20 20">
+      <polygon stroke="green" fill="transparent" stroke-width="2" points="10 1.5,18.5 5.6,18.8 15, 10 18.5,1.5 15,1.5 5" />
+      <text x="4" y="13.6" style="font-family: monospace; font-size: 10px; font-weight: bold;" fill="green">JS</text>
+    </svg></a> to make interactive server. <br>
+    <hr><br>
+    Name:  <input    id="txtName"        type="text" size="10">         <br><br>
+    Age:   <input    id="txtAge"         type="Number">                 <br><br>
+    Lunch: <textarea id="txtLunchOrder"  rows="5" cols="25"></textarea> <br><br>
+    <button id="btnSave">Save...</button>
+  </body>
+
+<script>
+
+let ServerCode = `
+
+const http = require('http');
+const fs = require('fs');
+
+http.createServer
+(
+  (req, resp) =>
+  {
+    let body = '';
+    req.on('data', chunk => { body += chunk });
+    req.on('end', () =>
+    {
+      let data = fs.readFileSync('Edit_Self_Json.html', {encoding:'utf8',flag:'r'});
+
+      data = data.split('\\n/* cut */\\n');
+      data = data[0] + '\\n/* cut */\\n' + body + '\\n/* cut */\\n' + data[2];  // Replace json chunk
+
+      fs.writeFileSync('Edit_Self_Json.html', data);
+
+      resp.statusCode = 200;
+      resp.setHeader('Content-Type', 'text/plain');
+      resp.setHeader('Access-Control-Allow-Origin', '*');
+      resp.end();
+    });
+  }
+).listen(8002);
+
+`;
+
+CodeLink.href = "data:text/javascript," + ServerCode;
+
+let xhr = new XMLHttpRequest();
+
+btnSave.onclick = () =>
+{
+  xhr.onreadystatechange = () =>
+  {
+    if (xhr.readyState == 4 && xhr.status == 200)
+      location.reload();
+  };
+
+  xhr.open("POST", "http://localhost:8002");
+  xhr.send(JSON.stringify(Edit_Self_Json,null, "  "));
+}
+
+window.Edit_Self_Json = 
+/* cut */
+{
+  "Name": "Max",
+  "Age": 42,
+  "LunchOrder": [
+    "Mac and Cheese",
+    "Pork sandwich",
+    "Italian wedding soup",
+    "Bread and butter",
+    "Meatballs"
+  ]
+}
+/* cut */
+
+txtName.value       = window.Edit_Self_Json.Name;
+txtAge.value        = window.Edit_Self_Json.Age;
+txtLunchOrder.value = window.Edit_Self_Json.LunchOrder.join('\n');
+
+txtName.oninput       = () => { window.Edit_Self_Json.Name       = txtName.value };
+txtAge.oninput        = () => { window.Edit_Self_Json.Age        = txtAge.value };
+txtLunchOrder.oninput = () => { window.Edit_Self_Json.LunchOrder = txtLunchOrder.value.split('\n') };
+
+</script>
+</html>
