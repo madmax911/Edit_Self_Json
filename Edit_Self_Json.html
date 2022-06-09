@@ -42,7 +42,7 @@ http.createServer
       let data = fs.readFileSync('Edit_Self_Json.html', {encoding:'utf8',flag:'r'});
 
       data = data.split('\\n/* cut */\\n');
-      data = data[0] + '\\n/* cut */\\n' + body + '\\n/* cut */\\n' + data[2];  // Replace json chunk
+      data = data[0] + '\\n/* cut */\\n' + body + '\\n/* cut */\\n' + data[2];  /* Replace json chunk */
 
       fs.writeFileSync('Edit_Self_Json.html', data);
 
